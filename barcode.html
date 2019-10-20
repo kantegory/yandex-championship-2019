@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Barcode | Clone Fabrics</title>
+</head>
+<body>
+	<script type="text/javascript">
+		document.write(`
+			<style>
+				.barcode {
+					width: 148px;
+					height: 156px;
+				}
+
+				.border-black {
+					padding: 3px;
+					background: black;
+				}
+
+				.border-white {
+					padding: 3px;
+					background: white;
+				}
+
+				.quadrate {
+					width: 8px;
+					height: 8px;
+				}
+
+				.black {
+					background: #000;
+				}
+
+				.white {
+					background: #fff;
+				}
+
+				.row {
+					display: flex;
+					flex-direction: row;
+				}
+
+				.col {
+					display: flex;
+					flex-direction: column;
+				}
+			</style>
+			<div class="barcode" id="outerBarcode">
+			</div>
+			`);
+
+		function fillBarcode(element) {
+			element.outerHTML = `<div class="barcode" id="outerBarcode">
+									<div class="border-black">
+										<div class="border-white col" id="barcode">
+										
+										</div>
+									</div>
+								</div>`;
+			for (let i = 0; i < 18; i++) {
+				document.getElementById('barcode').innerHTML += `<div class="row" id="row` + i + `"></div>`;
+				for (let j = 0; j < 17; j++) {
+					document.getElementById('row' + i).innerHTML += `<div class="col quadrate"></div>`;
+				}
+			}
+		}
+
+		function returnSexNumber(sex) {
+			if (sex === "female") {
+				return ['0'];
+			}
+			else if (sex === "male") {
+				return ['1'];
+			}
+		}
+
+		function returnIdNameString(id, name) {
+			while (name.length < 26) {
+				name += ' ';
+			}
+			let result = id + name;
+			return result;
+		}
+
+		function toASCII(string) {
+			asciiArray = [];
+			for (let i = 0; i < string.length; i++) {
+				asciiArray.push(string.charCodeAt(i));
+			}
+			return asciiArray;
+		}
+
+		function toBin(asciiArray) {
+			for (let i = 0; i < asciiArray.length; i++) {
+				asciiArray[i] = asciiArray[i].toString(2);
+				diff = 8 - asciiArray[i].length;
+				while (diff > 0) {
+					asciiArray[i] = '0' + asciiArray[i];
+					diff--;
+				}
+			}
+			return asciiArray;
+		}
+
+		function correctData(string1, string2) {
+			let incorrectData = string1.join('') + string2.join('');
+			incorrectData = incorrectData.split('');
+			let data = [];
+
+			for (let i = 0; i < 17; i++) {
+				data.push(incorrectData.slice(0, 17));
+				incorrectData = incorrectData.slice(17);
+			}
+
+			for (let i = 0; i < data.length; i++) {
+				for (let j = 0; j < data[i].length; j++) {
+					data[i][j] = Number(data[i][j]);
+				}
+			}
+
+
+			return data;
+		}
+
+		function dataPlushHash(data, hashSumArr) {
+			for (let i = 0; i < hashSumArr.length; i++) {
+				hashSumArr[i] = Number(hashSumArr[i]);
+			}
+			data.push(hashSumArr);
+			return data;
+		}
+
+		const transpose = m => m[0].map((x,i) => m.map(x => x[i]));
+		const reducer = (accumulator, currentValue) => accumulator + currentValue;
+
+		function transposeData(data) {
+			let transposedData = transpose(data);
+			
+			return transposedData;
+		}
+
+		function hashSum(data) {
+			let transposedData = transposeData(data),
+			hashSumArr = [];
+			for (let i = 0; i < transposedData.length; i++) {
+				if (transposedData[i].reduce(reducer) % 2 == 0) {
+					hashSumArr.push('0');
+				} 
+				else {
+					hashSumArr.push('1');
+				}
+			}
+
+			return hashSumArr;
+		};
+
+		function getColor(data) {
+			colors = [];
+			for (let i = 0; i < data.length; i++) {
+				colors.push([]);
+				for (let j = 0; j < data[i].length; j++) {
+					if (data[i][j] == 0) {
+						colors[i].push('white');
+					}
+					else if (data[i][j] == 1) {
+						colors[i].push('black');
+					}
+				}
+			}
+			return colors;
+		};
+
+		function dataToString(data) {
+			for (i = 0; i < data.length; i++) {
+				data[i] = data[i].join('');
+			}
+			return data;
+		}
+
+		function colorizeBarcode(colors) {
+			for (let i = 0; i < colors.length; i++) {
+				for (let j = 0; j < colors[i].length; j++) {
+					document.getElementById('row' + i).getElementsByClassName('col')[j].classList.add(colors[i][j]);
+				}
+			} 
+		}
+
+		function renderBarcode(cloneInfo, element) {
+			fillBarcode(element);
+			let sex = cloneInfo.sex,
+			id = cloneInfo.id,
+			name = cloneInfo.name;
+			sexNumber = returnSexNumber(sex);
+			idNameString = returnIdNameString(id, name);
+			idNameString = toASCII(idNameString);
+			idNameString = toBin(idNameString);
+			data = correctData(sexNumber, idNameString);
+			hashSumArr = hashSum(data);
+			data = dataPlushHash(data, hashSumArr);
+			colors = getColor(data);
+			colorizeBarcode(colors);
+		}
+
+		let info = {  
+			    "sex": "female",  
+			    "id": "0owrgqqwfw",  
+			    "name": "Dazdraperma Petrovna"  
+			}
+
+
+
+		element = document.getElementById('outerBarcode');
+
+		renderBarcode(info, element);
+
+	</script>
+</body>
+</html>
