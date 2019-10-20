@@ -13,14 +13,8 @@
 					height: 156px;
 				}
 
-				.border-black {
+				.border {
 					padding: 3px;
-					background: black;
-				}
-
-				.border-white {
-					padding: 3px;
-					background: white;
 				}
 
 				.quadrate {
@@ -49,23 +43,9 @@
 			<div class="barcode" id="outerBarcode">
 			</div>
 			`);
-
-		function fillBarcode(element) {
-			element.outerHTML = `<div class="barcode" id="outerBarcode">
-									<div class="border-black">
-										<div class="border-white col" id="barcode">
-										
-										</div>
-									</div>
-								</div>`;
-			for (let i = 0; i < 18; i++) {
-				document.getElementById('barcode').innerHTML += `<div class="row" id="row` + i + `"></div>`;
-				for (let j = 0; j < 17; j++) {
-					document.getElementById('row' + i).innerHTML += `<div class="col quadrate"></div>`;
-				}
-			}
-		}
-
+		const transpose = m => m[0].map((x,i) => m.map(x => x[i]));
+		const reducer = (accumulator, currentValue) => accumulator + currentValue;
+		
 		function returnSexNumber(sex) {
 			if (sex === "female") {
 				return ['0'];
@@ -103,8 +83,8 @@
 			return asciiArray;
 		}
 
-		function correctData(string1, string2) {
-			let incorrectData = string1.join('') + string2.join('');
+		function correctData(sex, idNameString) {
+			let incorrectData = sex.join('') + idNameString.join('');
 			incorrectData = incorrectData.split('');
 			let data = [];
 
@@ -131,17 +111,8 @@
 			return data;
 		}
 
-		const transpose = m => m[0].map((x,i) => m.map(x => x[i]));
-		const reducer = (accumulator, currentValue) => accumulator + currentValue;
-
-		function transposeData(data) {
-			let transposedData = transpose(data);
-			
-			return transposedData;
-		}
-
 		function hashSum(data) {
-			let transposedData = transposeData(data),
+			let transposedData = transpose(data),
 			hashSumArr = [];
 			for (let i = 0; i < transposedData.length; i++) {
 				if (transposedData[i].reduce(reducer) % 2 == 0) {
@@ -154,40 +125,31 @@
 
 			return hashSumArr;
 		};
+		
+		function fillBarcode(data, element) {
+			element.outerHTML = `<div class="barcode" id="outerBarcode">
+									<div class="border black">
+										<div class="border white col" id="barcode">
+										
+										</div>
+									</div>
+								</div>`;
 
-		function getColor(data) {
-			colors = [];
+			// let's fill it
 			for (let i = 0; i < data.length; i++) {
-				colors.push([]);
+				document.getElementById('barcode').innerHTML += `<div class="row" id="row` + i + `"></div>`;
 				for (let j = 0; j < data[i].length; j++) {
 					if (data[i][j] == 0) {
-						colors[i].push('white');
-					}
-					else if (data[i][j] == 1) {
-						colors[i].push('black');
+						document.getElementById('row' + i).innerHTML += `<div class="col quadrate white"></div>`;
+					}					
+					else {
+						document.getElementById('row' + i).innerHTML += `<div class="col quadrate black"></div>`;
 					}
 				}
 			}
-			return colors;
-		};
-
-		function dataToString(data) {
-			for (i = 0; i < data.length; i++) {
-				data[i] = data[i].join('');
-			}
-			return data;
-		}
-
-		function colorizeBarcode(colors) {
-			for (let i = 0; i < colors.length; i++) {
-				for (let j = 0; j < colors[i].length; j++) {
-					document.getElementById('row' + i).getElementsByClassName('col')[j].classList.add(colors[i][j]);
-				}
-			} 
 		}
 
 		function renderBarcode(cloneInfo, element) {
-			fillBarcode(element);
 			let sex = cloneInfo.sex,
 			id = cloneInfo.id,
 			name = cloneInfo.name;
@@ -198,14 +160,14 @@
 			data = correctData(sexNumber, idNameString);
 			hashSumArr = hashSum(data);
 			data = dataPlushHash(data, hashSumArr);
-			colors = getColor(data);
-			colorizeBarcode(colors);
+			fillBarcode(data, element);
 		}
 
+		// test
 		let info = {  
-			    "sex": "female",  
-			    "id": "0owrgqqwfw",  
-			    "name": "Dazdraperma Petrovna"  
+			    "sex": "male",  
+			    "id": "c5j818dyo5",  
+			    "name": "Oleg Vladimirovich"  
 			}
 
 
@@ -213,7 +175,6 @@
 		element = document.getElementById('outerBarcode');
 
 		renderBarcode(info, element);
-
 	</script>
 </body>
 </html>
