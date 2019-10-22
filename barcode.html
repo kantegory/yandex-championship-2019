@@ -3,48 +3,46 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Barcode | Clone Fabrics</title>
+	<style>
+		.barcode {
+			width: 148px;
+			height: 156px;
+		}
+
+		.border {
+			padding: 3px;
+		}
+
+		.quadrate {
+			width: 8px;
+			height: 8px;
+		}
+
+		.black {
+			background: #000;
+		}
+
+		.white {
+			background: #fff;
+		}
+
+		.row {
+			display: flex;
+			flex-direction: row;
+		}
+
+		.col {
+			display: flex;
+			flex-direction: column;
+		}
+	</style>
 </head>
 <body>
+	<div class="barcode" id="outerBarcode">
+	</div>
 	<script type="text/javascript">
-		document.write(`
-			<style>
-				.barcode {
-					width: 148px;
-					height: 156px;
-				}
-
-				.border {
-					padding: 3px;
-				}
-
-				.quadrate {
-					width: 8px;
-					height: 8px;
-				}
-
-				.black {
-					background: #000;
-				}
-
-				.white {
-					background: #fff;
-				}
-
-				.row {
-					display: flex;
-					flex-direction: row;
-				}
-
-				.col {
-					display: flex;
-					flex-direction: column;
-				}
-			</style>
-			<div class="barcode" id="outerBarcode">
-			</div>
-			`);
-		
 		const transpose = m => m[0].map((x,i) => m.map(x => x[i]));
+		
 		const reducer = (accumulator, currentValue) => accumulator + currentValue;
 		
 		function returnSexNumber(sex) {
@@ -105,23 +103,24 @@
 		}
 
 		function dataPlushHash(data, hashSumArr) {
-			for (let i = 0; i < hashSumArr.length; i++) {
-				hashSumArr[i] = Number(hashSumArr[i]);
-			}
 			data.push(hashSumArr);
 			return data;
 		}
 
 		function hashSum(data) {
+
 			let transposedData = transpose(data),
 			hashSumArr = [];
+			
 			for (let i = 0; i < transposedData.length; i++) {
+			
 				if (transposedData[i].reduce(reducer) % 2 == 0) {
-					hashSumArr.push('0');
+					hashSumArr.push(0);
 				} 
 				else {
-					hashSumArr.push('1');
+					hashSumArr.push(1);
 				}
+			
 			}
 
 			return hashSumArr;
@@ -151,16 +150,22 @@
 		}
 
 		function renderBarcode(cloneInfo, element) {
+			
 			let sex = cloneInfo.sex,
 			id = cloneInfo.id,
 			name = cloneInfo.name;
-			sexNumber = returnSexNumber(sex);
+
+			let sexNumber = returnSexNumber(sex),
 			idNameString = returnIdNameString(id, name);
+
 			idNameString = toASCII(idNameString);
 			idNameString = toBin(idNameString);
-			data = correctData(sexNumber, idNameString);
+			
+			let data = correctData(sexNumber, idNameString),
 			hashSumArr = hashSum(data);
+
 			data = dataPlushHash(data, hashSumArr);
+			
 			fillBarcode(data, element);
 		}
 
